@@ -14,7 +14,7 @@ setInterval(function(){
 	if(!flag2)
 {	for (var i = 0; i < 1000000; i++) {
 		updatematrix();
-		data[check()]=1;
+		data[check()]=matrix;
 	}
 	console.log(Object.keys(data).length);}
 },3000)
