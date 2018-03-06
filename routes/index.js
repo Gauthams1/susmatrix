@@ -17,7 +17,7 @@ setInterval(function(){
 		data[check()]=matrix;
 	}
 	console.log(Object.keys(data).length);}
-},1000)
+},3000)
 router.get('/', ensureAuthenticated, function(req, res){
 	res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
 });
