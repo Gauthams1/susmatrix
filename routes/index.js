@@ -2,10 +2,10 @@ var express = require('express');
 var router = express.Router();
 
 var matrix=[
-	[1,1,1],
-	[1,1,1],
-	[1,1,1],
-	[1,1,1]
+	[0,0,0],
+	[0,0,0],
+	[0,0,0],
+	[0,0,0]
 ]
 flag2=false;
 data={}
