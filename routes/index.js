@@ -6,7 +6,6 @@ var matrix=[
 ]
 flag2=false;
 data=User;
-console.log(User);
 // Get Homepage
 setInterval(function(){
 	if(!flag2)
