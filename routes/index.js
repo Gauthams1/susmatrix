@@ -54,9 +54,9 @@ function check() {
 	var string=""
 	for (var k = 0; k < 16; k++) {
 		value=k&15;
-		sum=matrix[0][value&3]
-	for (var i = 0; i < matrix.length; i++) {
-		sum=sum&matrix[i][value&3];
+		sum=matrix[value&3][0]
+	for (var i = 0; i < matrix[0].length; i++) {
+		sum=sum&matrix[value&3][i];
 		value=parseInt(value/2)
 	}
 	string+=sum==0?0:1;
