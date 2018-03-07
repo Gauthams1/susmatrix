@@ -1,14 +1,12 @@
 var express = require('express');
 var router = express.Router();
-
+var User = require('../models/datas');
 var matrix=[
-	[0,0,0],
-	[0,0,0],
-	[0,0,0],
-	[0,0,0]
+	[3,5,6],[2,1,1],[6,4,6],[3,2,1]
 ]
 flag2=false;
-data={}
+data=User;
+console.log(User);
 // Get Homepage
 setInterval(function(){
 	if(!flag2)
