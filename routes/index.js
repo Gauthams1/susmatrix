@@ -21,6 +21,9 @@ setInterval(function(){
 router.get('/', ensureAuthenticated, function(req, res){
 	res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
 });
+router.get('/test', ensureAuthenticated, function(req, res){
+	res.render('index')
+});
 router.get('/data', ensureAuthenticated, function(req, res){
 	res.json(data);
 });
