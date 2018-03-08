@@ -6,7 +6,6 @@ var matrix=[
 ]
 flag2=false;
 start = true;
-data=User;
 
 setInterval(function(){
 	if(!flag2)
