@@ -13,10 +13,22 @@ function check() {
 		sum=matrix[value&3][0]
 	for (var i = 0; i < matrix[0].length; i++) {
 		sum=sum&matrix[value&3][i];
-		console.log(value&3);
+			value=parseInt(value/2)
+		}
+	string+=sum
+	}
+return string
+}
+function checkinv() {
+	var string=""
+	for (var k = 0; k < 16; k++) {
+		value=k&15;
+		sum=~(matrix[value&3][0])
+	for (var i = 0; i < matrix[0].length; i++) {
+		sum=sum&~(matrix[value&3][i]);
 		value=parseInt(value/2)
 		}
-	string+=sum==0?0:1;
+	string+=~sum&15
 	}
 return string
 }

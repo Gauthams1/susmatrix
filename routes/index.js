@@ -2,11 +2,12 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/datas');
 var matrix=[
-	[0,0,0],[1,1,1],[1,1,1],[1,1,1]
+	[0,0,0],[6,1,1],[3,6,7],[1,2,1]
 ]
 flag2=false;
+start = true;
 data=User;
-// Get Homepage
+
 setInterval(function(){
 	if(!flag2)
 {	for (var i = 0; i < 100000; i++) {
@@ -17,6 +18,7 @@ setInterval(function(){
 },300)
 router.get('/', function(req, res){
 	res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
+
 });
 router.get('/test', function(req, res){
 	res.render('index')
@@ -54,9 +56,9 @@ function check() {
 		sum=matrix[value&3][0]
 	for (var i = 0; i < matrix[0].length; i++) {
 		sum=sum&matrix[value&3][i];
-		value=parseInt(value/2)
+		value=value>>1
 		}
-	string+=sum==0?0:1;
+	string+=sum&7==0?0:1;
 	}
 return string
 }
