@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/datas');
 var matrix=[
-	[3,5,6],[2,1,1],[6,4,6],[1,1,1]
+	[0,0,0],[1,1,1],[1,1,1],[1,1,1]
 ]
 flag2=false;
 data=User;
