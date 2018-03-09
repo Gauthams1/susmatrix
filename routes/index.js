@@ -2,10 +2,10 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/datas');
 var matrix=[
-	[0,0],
-	[0,0],
-	[0,0],
-	[0,0],
+	[0,0,0,0],
+	[0,0,0,0],
+	[0,0,0,0],
+	[0,0,0,0],
 ]
 flag2=false;
 start = true;
