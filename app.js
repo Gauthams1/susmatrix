@@ -7,9 +7,13 @@ var expressValidator = require('express-validator');
 var flash = require('connect-flash');
 var session = require('express-session');
 var routes = require('./routes/index');
+var mongo = require('mongodb');
+var mongoose = require('mongoose');
+
 // Init App
 var app = express();
-
+//mongoose.connect('mongodb://gauth:1234@ds131989.mlab.com:31989/susmatrix');
+mongoose.connect('mongodb://localhost/susmatrix');
 // View Engine
 app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
@@ -47,7 +51,7 @@ app.use(expressValidator({
 
 
 app.use('/', routes);
-app.set('port', (process.env.PORT || 2000));
+app.set('port', (process.env.PORT || 3001));
 
 app.listen(app.get('port'), function(){
 	console.log('Server started on port '+app.get('port'));

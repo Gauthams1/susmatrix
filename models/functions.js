@@ -6,17 +6,27 @@ module.exports={
 				secondlayer[this.comparematrix(objects[i],objects[j])]=objects[i]+"#"+objects[j];
 			}
 		}
-		return secondlayer;
+			return secondlayer;
 	},
-	nlayer:function(objects,secondlayer) {
-		var seclayer=Object.keys(secondlayer)
-			var result={};
-		for (var i = 0; i < objects.length; i++) {
-			for (var j = 0; j < seclayer.length; j++) {
-				result[this.comparematrix(objects[i],seclayer[j])]=secondlayer[seclayer[j]]+"#"+objects[i];
+	nlayer:function(objects,n) {
+		return new Promise((resolve, reject) => {
+			var secondlayer={};
+			for (var i = 0; i < objects.length; i++) {
+				for (var j = i; j < objects.length; j++) {
+					secondlayer[this.comparematrix(objects[i],objects[j])]=objects[i]+"#"+objects[j];
+				}
 			}
-		}
-		return result;
+			for (var k = 0; k < n; k++) {
+				var seclayer=Object.keys(secondlayer)
+				var result={};
+				for (var i = 0; i < objects.length; i++) {
+					for (var j = 0; j < seclayer.length; j++) {
+						result[this.comparematrix(objects[i],seclayer[j])]=secondlayer[seclayer[j]]+"#"+objects[i];
+					}
+				}
+			}
+			resolve(result)
+  });
 	},
 	comparematrix:function(matrix1,matrix2){
 		var string="";

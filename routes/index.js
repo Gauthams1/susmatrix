@@ -1,12 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var functions = require('../models/functions');
-const addon = require('../build/Release/addon');
+var user = require('../models/user');
+// const addon = require('../build/Release/addon');
 var matrix=[
-	[0,0,0],
-	[0,0,0],
-	[0,0,0],
-	[0,0,0],
+	[ 1, 1, 1, 1, 1, 0, 0 ],
+	     [ 1, 1, 1, 0, 1, 1, 0 ],
+	     [ 0, 1, 1, 0, 0, 0, 0 ],
+	     [ 1, 0, 1, 1, 0, 0, 1 ]
 ]
 flag2=false,flag3=false,flag4=true;
 start = true;
@@ -18,11 +19,19 @@ var exp=[];
 for (var i = 0; i <= dataset; i++) {
 	string.push(0);
 }
-
-
 setInterval(function(){
-		if(!flag2)running();
-},300)
+	console.log(!flag3);
+		if(!flag2&&!flag3)running();
+
+		var bulk=user.collection.bulkWrite(Object.values(data),{ ordered : false }).then( bulkWriteOpResult => {
+			data={};
+		})
+		.catch( err => {
+			console.log('BULK update error');
+			console.log({length:Object.keys(data).length,matrix:matrix,flag:flag2,flag3:err.result.nInserted});
+			data={};
+		});
+},500)
 
 var objects = Object.keys(data);
 objects.sort(function(a,b){
@@ -30,25 +39,23 @@ objects.sort(function(a,b){
 })
 var secondlayer={},secondlayerobjects=[];
 
+router.get('/init',function(req,res){
+		res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
+
+})
 router.get('/', function(req, res){
 	res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
  objects = Object.keys(data);
-	// objects.sort(function(a,b){
-	// 	return b.split("0").join("").length-a.split("0").join("").length;
-	// })
-	// exceptions()
-
 });
 router.get('/nlayer', function(req, res){
 	if(flag4){
-		secondlayer=functions.secondlayer(objects);
-		for (var i = 0; i < matrix[0].length-2; i++) {
-			secondlayer=functions.nlayer(objects,secondlayer);
-		}
-		secondlayerobjects=Object.keys(secondlayer);
+		functions.nlayer(objects,matrix[0].length-2).then((data)=>{
+			secondlayer=data;
+			});
 		flag4=false;
 	}
-res.json({length:Object.keys(secondlayer).length});
+	secondlayerobjects=Object.keys(secondlayer);
+	res.json({length:Object.keys(secondlayer).length});
 });
 router.get('/searchlayer', function(req, res){
 	var param= req.query;
@@ -64,6 +71,9 @@ router.get("/data",(req,res)=>{
 router.get("/matrix",(req,res)=>{
 	res.json({matrix:data[req.query.d]})
 })
+router.get("/data2",(req,res)=>{
+	res.json(data)
+})
 router.get("/search",(req,res)=>{
 	var query=req.query.d.split("1").join(".")
 	query=RegExp(query,"g");
@@ -72,6 +82,10 @@ router.get("/search",(req,res)=>{
 	})
 	res.json({matrix:result})
 })
+// =============================================================
+//
+//
+// =============================================================
 
 function updatematrix() {
   var flag = false;
@@ -107,27 +121,16 @@ function check(number) {
 }
 
 function running() {
-  for(var i = 0; i < 1000000; i++) {
-    data[check(dataset)] = JSON.stringify(matrix);
+	var value=0;
+	flag3=true;
+  for(var i = 0; i < 2000000; i++) {
+		value=check(dataset)
+    data[value] = { insertOne : { "document" : {matrix:JSON.stringify(matrix),data:value,number:value.split("0").join("").length} } };
     updatematrix();
   }
+	flag3=false;
 }
 
-function exceptions() {
-  for(var j = 0; j < 100000; j++) {
-    for(var i = 0; i < string.length; i++) {
-      string[i] += 1;
-      if(string[i] == 2) {
-        string[i] = 0
-      }
-      else if(string.reduce((a, b) => a + b, 0) == dataset + 1) flag3 = true;
-      else {
-        break;
-      }
-    }
-    if(objects.indexOf(string.join("")) < 0 && !flag3) exp.push(string.join(""))
-  }
-}
 
 
 module.exports = router;
