@@ -3,110 +3,130 @@ var router = express.Router();
 var functions = require('../models/functions');
 var user = require('../models/user');
 // const addon = require('../build/Release/addon');
-var matrix=[
-	[ 1, 1, 1, 1, 1, 0, 0 ],
-	     [ 1, 1, 1, 0, 1, 1, 0 ],
-	     [ 0, 1, 1, 0, 0, 0, 0 ],
-	     [ 1, 0, 1, 1, 0, 0, 1 ]
-]
-flag2=false,flag3=false,flag4=true;
-start = true;
-var data={}
-var dataset=matrix[0].length;
-dataset=Math.pow(2,dataset+1)-1;
-var string =[];
-var exp=[];
-for (var i = 0; i <= dataset; i++) {
-	string.push(0);
-}
-setInterval(function(){
-	console.log(!flag3);
-		if(!flag2&&!flag3)running();
 
-		var bulk=user.collection.bulkWrite(Object.values(data),{ ordered : false }).then( bulkWriteOpResult => {
-			data={};
-		})
-		.catch( err => {
-			console.log('BULK update error');
-			console.log({length:Object.keys(data).length,matrix:matrix,flag:flag2,flag3:err.result.nInserted});
-			data={};
-		});
-},500)
-
-var objects = Object.keys(data);
-objects.sort(function(a,b){
-	return a-b;
+const order=[
+	"00",
+	"11",
+	"01",
+	"10"
+],
+order2=[
+	"00",
+	"11",
+	"10",
+	"01"
+];
+router.get('/search/:data', function(req, res){
+var data=req.params.data;
+user.find({data:data},function(err,user){
+	res.json(user);
 })
-var secondlayer={},secondlayerobjects=[];
-
-router.get('/init',function(req,res){
-		res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
-
-})
-router.get('/', function(req, res){
-	res.json({length:Object.keys(data).length,matrix:matrix,flag:flag2});
- objects = Object.keys(data);
 });
-router.get('/nlayer', function(req, res){
-	if(flag4){
-		functions.nlayer(objects,matrix[0].length-2).then((data)=>{
-			secondlayer=data;
-			});
-		flag4=false;
+router.get('/:data', function(req, res){
+var data=req.params.data;
+var returndata=manuplate(data);
+console.log(data);
+res.json(returndata);
+});
+function returnresultjson(data,left,right) {
+	var revisedstring=propergenerator(data,left,right);
+	var revisedstring2=matrixgenerator(data,revisedstring);
+	console.log(`revisedstring : ${revisedstring}`);
+	return {
+		left:left,
+		right:right,
+    data: data,
+		revised: revisedstring2.revisedstring,
+		revisedlength2:revisedstring2.revisedstring.split("0").join("").length,
+};
+}
+function lowestvalue(data) {
+	var lowestleft="00",lowestright="00",currentstringleft,currentstringright;
+	for (var i = 0; i < data.length; i+=4) {
+	currentstringleft=data.substr(i,2);
+	currentstringright=data.substr(i+2,2);
+	lowestleft=order.indexOf(currentstringleft)>order.indexOf(lowestleft)?currentstringleft:lowestleft;
+	lowestright=order.indexOf(currentstringright)>order.indexOf(lowestright)?currentstringright:lowestright;
 	}
-	secondlayerobjects=Object.keys(secondlayer);
-	res.json({length:Object.keys(secondlayer).length});
-});
-router.get('/searchlayer', function(req, res){
-	var param= req.query;
-	query=RegExp(param.q,"g");
-		var result=secondlayerobjects.find(function(a){
-		return a.search(query)>=0
-	})
-	res.json({result:secondlayer[result]})
-});
-router.get("/data",(req,res)=>{
-	res.json(secondlayer)
-})
-router.get("/matrix",(req,res)=>{
-	res.json({matrix:data[req.query.d]})
-})
-router.get("/data2",(req,res)=>{
-	res.json(data)
-})
-router.get("/search",(req,res)=>{
-	var query=req.query.d.split("1").join(".")
-	query=RegExp(query,"g");
-		var result=objects.filter(function(a){
-		return a.search(query)>=0
-	})
-	res.json({matrix:result})
-})
-// =============================================================
-//
-//
-// =============================================================
-
-function updatematrix() {
-  var flag = false;
-  for(var i = 0; i < matrix.length; i++) {
-    for(var j = 0; j < matrix[i].length; j++) {
-      matrix[i][j] += 1;
-      if(matrix[i][j] == 2) {
-        matrix[i][j] = 0
-      }
-      else if((i + 1 == matrix.length) && (j + 1 == matrix[0].length)) flag2 = true
-      else {
-        flag = true
-        break;
-      }
-    }
-    if(flag) break;
-  }
-  return matrix
+	var matrix=[parseInt(lowestleft[0]),parseInt(lowestleft[1]),parseInt(lowestright[0]),parseInt(lowestright[1])];
+	console.log(matrix);
+	return {lowestleft:lowestleft,lowestright:lowestright,matrix:matrix};
+}
+function manuplate(data){
+	var datastring=data,matrixresult=[
+		[],
+		[],
+		[],
+		[]
+	];
+	var datapoints=lowestvalue(datastring);
+	var lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
+	for (var i = data.length; i >=4; i=i) {
+		datapoints=lowestvalue(datastring);
+		lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
+		var datajsondetail=returnresultjson(datastring,lowestleft,lowestright);
+		datastring=datajsondetail.revised;
+		matrixresult[0].push(datapoints.matrix[0]);
+		matrixresult[1].push(datapoints.matrix[1]);
+		matrixresult[2].push(datapoints.matrix[2]);
+		matrixresult[3].push(datapoints.matrix[3]);
+		i=datastring.length;
+	}
+	var dataset=Math.pow(2,matrixresult[0].length+1)-1;
+	datapoints=lowestvalue(data);
+	lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
+	console.log(matrixresult);
+	return {json:returnresultjson(data,lowestleft,lowestright),matrix:matrixresult,result:check(dataset,matrixresult),reminder:subtract(data,check(dataset,matrixresult))}
 }
 
-function check(number) {
+function propergenerator(original,left,right){
+var newstring="",revisedstring="";
+	for (var i = 0; i < original.length; i=i) {
+	newstring+=left+right;
+	i=newstring.length;
+	}
+return newstring;
+}
+function matrixgenerator(original,synthetic,j=2){
+	var revisedstring="";
+	for (var i = 0; i < synthetic.length-j; i+=2*j) {
+		revisedstring+=weight2(original.substr(i,j),synthetic.substr(i,j))+weight2(original.substr(i+j,j),synthetic.substr(i+j,j))
+}
+return {matrix:"matrix",revisedstring:revisedstring};
+}
+function weight(dataoriginal,datasynthetic){
+	var weight=1,wstring="";
+	for (var i = 0; i < dataoriginal.length; i++) {
+		weight*=1*!(dataoriginal[i]=="0"&&datasynthetic[i]=="1")
+	}
+	for (var i = 0; i < dataoriginal.length; i++) {
+		wstring+=(weight==0)?0:datasynthetic[i]
+	}
+	return wstring;
+}
+function weight2(dataoriginal,datasynthetic){
+	var weight=1,wstring="";
+	for (var i = 0; i < dataoriginal.length; i++) {
+		weight*=1*!(dataoriginal[i]=="0"&&datasynthetic[i]=="1")
+	}
+	return weight+"";
+}
+
+function subtract(dataoriginal,datasynthetic){
+	var returnobj=""
+	for (var i = 0; i < dataoriginal.length; i++) {
+		returnobj+=1*(dataoriginal[i]=="1"&&datasynthetic[i]=="0")
+	}
+return returnobj
+}
+function reminder(dataoriginal,datasynthetic){
+var returnobj=""
+for (var i = 0; i < dataoriginal.length; i++) {
+	returnobj+=1*(dataoriginal[i]=="1"&&datasynthetic[i]=="1")
+}
+return returnobj
+}
+function check(number,matrix) {
   var string = ""
   for(var k = 0; k <= number; k++) {
     value = k;
@@ -119,18 +139,6 @@ function check(number) {
   }
   return string
 }
-
-function running() {
-	var value=0;
-	flag3=true;
-  for(var i = 0; i < 2000000; i++) {
-		value=check(dataset)
-    data[value] = { insertOne : { "document" : {matrix:JSON.stringify(matrix),data:value,number:value.split("0").join("").length} } };
-    updatematrix();
-  }
-	flag3=false;
-}
-
 
 
 module.exports = router;

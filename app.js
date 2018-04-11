@@ -7,6 +7,7 @@ var expressValidator = require('express-validator');
 var flash = require('connect-flash');
 var session = require('express-session');
 var routes = require('./routes/index');
+// var routes2 = require('./routes/temp');
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
@@ -51,6 +52,7 @@ app.use(expressValidator({
 
 
 app.use('/', routes);
+// app.use('/t', routes2);
 app.set('port', (process.env.PORT || 3001));
 
 app.listen(app.get('port'), function(){
