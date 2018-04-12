@@ -4,18 +4,32 @@ var functions = require('../models/functions');
 var user = require('../models/user');
 // const addon = require('../build/Release/addon');
 
-const order=[
-	"00",
-	"11",
-	"01",
-	"10"
-],
-order2=[
-	"00",
-	"11",
-	"10",
-	"01"
-];
+const order={
+	0:["00","01","10","11"],
+	1:["01","10","11","00"],
+	2:["10","11","00","01"],
+	3:["11","00","01","10"],
+	4:["01","00","10","11"],
+	5:["00","10","11","01"],
+	6:["10","11","01","00"],
+	7:["11","01","00","10"],
+	8:["00","10","01","11"],
+	9:["10","01","11","00"],
+	10:["01","11","00","10"],
+	11:["11","00","10","01"],
+	12:["00","01","11","10"],
+	13:["01","11","10","00"],
+	14:["11","10","00","01"],
+	15:["10","00","01","11"],
+	16:["00","11","10","01"],
+	17:["11","10","01","00"],
+	18:["10","01","00","11"],
+	19:["01","00","11","10"],
+	20:["11","01","10","00"],
+	21:["01","10","00","11"],
+	22:["10","01","11","01"],
+	23:["00","11","01","10"]
+};
 router.get('/search/:data', function(req, res){
 var data=req.params.data;
 user.find({data:data},function(err,user){
@@ -24,14 +38,31 @@ user.find({data:data},function(err,user){
 });
 router.get('/:data', function(req, res){
 var data=req.params.data;
-var returndata=manuplate(data);
-console.log(data);
-res.json(returndata);
+var datastring=data.split("").join("0");
+var result,itneeded=0;
+var iteration=Math.log(data.length)/Math.log(2);
+console.log(`starting getting iteration for now ${iteration-1}`);
+var start = new Date().getTime();
+
+for (var i = 0; i < iteration*30; i++) {
+	console.log(`iteration number ${i+1}`);
+	result=manuplate(datastring)
+	datastring=result.reminder;
+	itneeded=i;
+	if(datastring.split("0").join('')=="")
+	break;
+	console.log(`compression ${(data.length-result.left)/((i+1)*(i+1))} accurate : ${(data.length-result.left)/(data.length)}`);
+}
+res.json({result:result,compression:(data.length-result.left)/(4*(iteration-1)*(itneeded)),iterate:itneeded,accurate:(data.length-result.left)/(data.length)});
+console.log("end of result for now");
+
+var end = new Date().getTime();
+console.log((data.length-result.left)*1000/(4*(iteration-1)*(itneeded)*(end-start)));
+
 });
 function returnresultjson(data,left,right) {
 	var revisedstring=propergenerator(data,left,right);
 	var revisedstring2=matrixgenerator(data,revisedstring);
-	console.log(`revisedstring : ${revisedstring}`);
 	return {
 		left:left,
 		right:right,
@@ -40,44 +71,52 @@ function returnresultjson(data,left,right) {
 		revisedlength2:revisedstring2.revisedstring.split("0").join("").length,
 };
 }
-function lowestvalue(data) {
+function lowestvalue(data,ind) {
 	var lowestleft="00",lowestright="00",currentstringleft,currentstringright;
 	for (var i = 0; i < data.length; i+=4) {
 	currentstringleft=data.substr(i,2);
 	currentstringright=data.substr(i+2,2);
-	lowestleft=order.indexOf(currentstringleft)>order.indexOf(lowestleft)?currentstringleft:lowestleft;
-	lowestright=order.indexOf(currentstringright)>order.indexOf(lowestright)?currentstringright:lowestright;
+	lowestleft=order[ind].indexOf(currentstringleft)>order[ind].indexOf(lowestleft)?currentstringleft:lowestleft;
+	lowestright=order[ind].indexOf(currentstringright)>order[ind].indexOf(lowestright)?currentstringright:lowestright;
 	}
 	var matrix=[parseInt(lowestleft[0]),parseInt(lowestleft[1]),parseInt(lowestright[0]),parseInt(lowestright[1])];
-	console.log(matrix);
 	return {lowestleft:lowestleft,lowestright:lowestright,matrix:matrix};
 }
 function manuplate(data){
-	var datastring=data,matrixresult=[
-		[],
-		[],
-		[],
-		[]
-	];
-	var datapoints=lowestvalue(datastring);
-	var lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
-	for (var i = data.length; i >=4; i=i) {
-		datapoints=lowestvalue(datastring);
-		lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
-		var datajsondetail=returnresultjson(datastring,lowestleft,lowestright);
-		datastring=datajsondetail.revised;
-		matrixresult[0].push(datapoints.matrix[0]);
-		matrixresult[1].push(datapoints.matrix[1]);
-		matrixresult[2].push(datapoints.matrix[2]);
-		matrixresult[3].push(datapoints.matrix[3]);
-		i=datastring.length;
+	var datastring,finalmatrix=[],max=0,dataset,finaldatapoint;
+	for (var j = 0; j <24; j++) {
+		datastring=data;
+		var matrixresult=[[],[],[],[]];
+		var datapoints='';
+		var lowestleft='',lowestright='';
+		for (var i = data.length; i >=4; i=i) {
+			datapoints=lowestvalue(datastring,j);
+			lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
+			var datajsondetail=returnresultjson(datastring,lowestleft,lowestright);
+			datastring=datajsondetail.revised;
+			matrixresult[0].push(datapoints.matrix[0]);
+			matrixresult[1].push(datapoints.matrix[1]);
+			matrixresult[2].push(datapoints.matrix[2]);
+			matrixresult[3].push(datapoints.matrix[3]);
+			i=datastring.length;
+		}
+		dataset=Math.pow(2,matrixresult[0].length+1)-1;
+		var reminderone=check(dataset,matrixresult).split("0").join('').length;
+		finalmatrix=reminderone>max?matrixresult:finalmatrix;
+		finaldatapoint=reminderone>max?datapoints:finaldatapoint;
+		finalmatrix=finalmatrix.length<4?matrixresult:finalmatrix;
+		max=reminderone>max?reminderone:max;
+
 	}
-	var dataset=Math.pow(2,matrixresult[0].length+1)-1;
-	datapoints=lowestvalue(data);
+
+console.log(`max ${max} matrix ${finalmatrix}`);
+	datapoints=finaldatapoint;
 	lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
-	console.log(matrixresult);
-	return {json:returnresultjson(data,lowestleft,lowestright),matrix:matrixresult,result:check(dataset,matrixresult),reminder:subtract(data,check(dataset,matrixresult))}
+	return {json:returnresultjson(data,lowestleft,lowestright),matrix:finalmatrix,result:check(dataset,finalmatrix),reminder:subtract(data,check(dataset,finalmatrix)),left:subtract(data,check(dataset,finalmatrix)).split("0").join('').length}
 }
+// ==========================================
+//
+// ==========================================
 
 function propergenerator(original,left,right){
 var newstring="",revisedstring="";

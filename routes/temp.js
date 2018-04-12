@@ -4,10 +4,10 @@ var functions = require('../models/functions');
 var user = require('../models/user');
 
 var matrix=[
-	[ 0, 0, 0, 0],
-	[ 0, 0, 0, 0],
-	[ 0, 0, 0, 0],
-	[ 0, 0, 0, 0]
+	[ 0, 0, 0],
+	[ 0, 0, 0],
+	[ 0, 0, 0],
+	[ 0, 0, 0]
 ]
 flag2=false,flag3=false,flag4=true;
 start = true;
@@ -130,7 +130,10 @@ function running() {
 	flag3=true;
   for(var i = 0; i < 2000000; i++) {
 		value=check(dataset)
-    data[value] = { insertOne : { "document" : {matrix:JSON.stringify(matrix),data:value,number:value.split("0").join("").length} } };
+    // data[value] = { insertOne : { "document" : {matrix:JSON.stringify(matrix),data:value,number:value.split("0").join("").length} } };
+		if(!data[value])
+		data[value]=0
+		data[value] +=1
     updatematrix();
   }
 	flag3=false;

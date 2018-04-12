@@ -7,14 +7,14 @@ var expressValidator = require('express-validator');
 var flash = require('connect-flash');
 var session = require('express-session');
 var routes = require('./routes/index');
-// var routes2 = require('./routes/temp');
+ var routes2 = require('./routes/temp');
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 
 // Init App
 var app = express();
 //mongoose.connect('mongodb://gauth:1234@ds131989.mlab.com:31989/susmatrix');
-mongoose.connect('mongodb://localhost/susmatrix');
+// mongoose.connect('mongodb://localhost/susmatrix');
 // View Engine
 app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
@@ -52,7 +52,7 @@ app.use(expressValidator({
 
 
 app.use('/', routes);
-// app.use('/t', routes2);
+app.use('/t', routes2);
 app.set('port', (process.env.PORT || 3001));
 
 app.listen(app.get('port'), function(){
