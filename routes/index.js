@@ -38,16 +38,16 @@ user.find({data:data},function(err,user){
 });
 router.get('/:data', function(req, res){
 var data=req.params.data;
-var datastring=data.split("").join("0");
+var datastring=data//.split("").join("0");
 var result,itneeded=0;
 var iteration=Math.log(data.length)/Math.log(2);
 console.log(`starting getting iteration for now ${iteration-1}`);
 var start = new Date().getTime();
 
-for (var i = 0; i < iteration*30; i++) {
+for (var i = 0; i < iteration+1; i++) {
 	console.log(`iteration number ${i+1}`);
 	result=manuplate(datastring)
-	datastring=result.reminder;
+	datastring=result.reminder//.split("").join("0");
 	itneeded=i;
 	if(datastring.split("0").join('')=="")
 	break;
@@ -71,26 +71,35 @@ function returnresultjson(data,left,right) {
 		revisedlength2:revisedstring2.revisedstring.split("0").join("").length,
 };
 }
-function lowestvalue(data,ind) {
-	var lowestleft="00",lowestright="00",currentstringleft,currentstringright;
-	for (var i = 0; i < data.length; i+=4) {
-	currentstringleft=data.substr(i,2);
-	currentstringright=data.substr(i+2,2);
-	lowestleft=order[ind].indexOf(currentstringleft)>order[ind].indexOf(lowestleft)?currentstringleft:lowestleft;
-	lowestright=order[ind].indexOf(currentstringright)>order[ind].indexOf(lowestright)?currentstringright:lowestright;
+function lowestvalue(data) {
+	var lowestleft="00",lowestright="00",currentstringleft,total,currentstringright,max=-1,maxlowestleft,maxlowestright;
+	for (var ind = 0; ind < 24; ind++) {
+		for (var i = 0; i < data.length; i+=4) {
+		currentstringleft=data.substr(i,2);
+		currentstringright=data.substr(i+2,2);
+		lowestleft=order[ind].indexOf(currentstringleft)>order[ind].indexOf(lowestleft)?currentstringleft:lowestleft;
+		lowestright=order[ind].indexOf(currentstringright)>order[ind].indexOf(lowestright)?currentstringright:lowestright;
+		}
+		total=lowestleft.split("0").join('').length*data.substr(0,data.length/2).split('0').join('').length+lowestright.split("0").join('').length*data.substr(data.length/2,data.length/2).split('0').join('').length;
+		maxlowestleft=total>max?lowestleft:maxlowestleft;
+		maxlowestright=total>max?lowestright:maxlowestright;
+		max=total>max?total:max;
+		console.log(`total ${total}`);
+
 	}
-	var matrix=[parseInt(lowestleft[0]),parseInt(lowestleft[1]),parseInt(lowestright[0]),parseInt(lowestright[1])];
-	return {lowestleft:lowestleft,lowestright:lowestright,matrix:matrix};
+	console.log(max);
+
+	var matrix=[parseInt(maxlowestleft[0]),parseInt(maxlowestleft[1]),parseInt(maxlowestright[0]),parseInt(maxlowestright[1])];
+	return {lowestleft:maxlowestleft,lowestright:maxlowestright,matrix:matrix};
 }
 function manuplate(data){
 	var datastring,finalmatrix=[],max=0,dataset,finaldatapoint;
-	for (var j = 0; j <24; j++) {
 		datastring=data;
 		var matrixresult=[[],[],[],[]];
 		var datapoints='';
 		var lowestleft='',lowestright='';
 		for (var i = data.length; i >=4; i=i) {
-			datapoints=lowestvalue(datastring,j);
+			datapoints=lowestvalue(datastring);
 			lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
 			var datajsondetail=returnresultjson(datastring,lowestleft,lowestright);
 			datastring=datajsondetail.revised;
@@ -106,9 +115,6 @@ function manuplate(data){
 		finaldatapoint=reminderone>max?datapoints:finaldatapoint;
 		finalmatrix=finalmatrix.length<4?matrixresult:finalmatrix;
 		max=reminderone>max?reminderone:max;
-
-	}
-
 console.log(`max ${max} matrix ${finalmatrix}`);
 	datapoints=finaldatapoint;
 	lowestleft=datapoints.lowestleft,lowestright=datapoints.lowestright;
